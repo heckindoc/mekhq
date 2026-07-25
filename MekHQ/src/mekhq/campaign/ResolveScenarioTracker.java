@@ -1185,10 +1185,29 @@ public class ResolveScenarioTracker {
                 entity = ejected;
             }
             // check if this ejection was picked up by a player's unit
-            boolean pickedUp = entity instanceof MekWarrior &&
-                                     !((MekWarrior) entity).getPickedUpByExternalIdAsString().equals("-1") &&
-                                     null !=
-                                           unitsStatus.get(UUID.fromString(((MekWarrior) entity).getPickedUpByExternalIdAsString()));
+            // Default will be that they were not picked up.
+            boolean pickedUp = false;
+            // First iterate through all units and only pick out our units and the allied units.
+            for (Unit u : units) {
+                if (u.getEntity().getOwnerId() != client.getLocalPlayer().getId() ||
+                          u.getEntity().getOwnerId() != client.getLocalPlayer().getTeam()) {
+                    continue;
+                }
+                // If the unit didn't pick anyone up, continue
+                if (u.getEntity().getPickedUpMekWarriors().isEmpty()) {
+                    continue;
+                }
+                // Iterate through anyone who was picked up, if they are on the enemy team, then they count as picked
+                // up.
+                for (Integer id : u.getEntity().getPickedUpMekWarriors()) {
+                    pickedUp = (oppositionPersonnel.containsKey(UUID.fromString(id.toString())));
+                }
+            }
+
+//            boolean pickedUp = entity instanceof MekWarrior &&
+//                                     !((MekWarrior) entity).getPickedUpByExternalIdAsString().equals("-1") &&
+//                                     null !=
+//                                           unitsStatus.get(UUID.fromString(((MekWarrior) entity).getPickedUpByExternalIdAsString()));
             // if the crew ejected from this unit, then skip it because we should find them
             // elsewhere
             // if they are alive
